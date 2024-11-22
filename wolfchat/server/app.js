@@ -20,7 +20,8 @@ const { Readable } = stream;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-redisClient.connect().catch(console.error);
+redisClient.on('error', (err) => console.error('Redis Client Error', err));
+await redisClient.connect();
 app.use(express.static('public'));
 app.use(session({
     store: new RedisStore({ client: redisClient }),
@@ -47,16 +48,6 @@ app.use('/assets', express.static(path.resolve(`${__dirname}/../hosted/`)));
 app.use(express.static(path.resolve(`${__dirname}/../hosted`)));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-app.use(session({
-    key: 'sessionId',
-    secret: 'SECRETCHEESE',
-    resave: true,
-    saveUninitialized: true,
-    cookie: {
-        httpOnly: true
-    }
-}));
 
 app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
