@@ -117,8 +117,14 @@ const Feed = () => {
                             <Box sx={{ ml: 6, mt: 1 }} key={reply._id}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <Avatar sx={{ bgcolor: '#4a4a4a', mr: 1, width: 24, height: 24, fontSize: '0.875rem' }}>
-    {reply.author?.username ? reply.author.username[0].toUpperCase() : '?'}
+                                    <Avatar 
+    sx={{ 
+        bgcolor: howl.author?.avatarColor || '#4a4a4a', 
+        mr: 2 
+    }} 
+    src={howl.author?.avatar}
+>
+    {howl.author?.username ? howl.author.username[0].toUpperCase() : '?'}
 </Avatar>
                                         <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
                                             {reply.author.username}

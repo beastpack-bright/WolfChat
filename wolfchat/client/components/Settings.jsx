@@ -69,78 +69,112 @@ const Settings = () => {
     return (
         <Container maxWidth="sm">
             <Box sx={{ mt: 4 }}>
-                <Paper elevation={3} sx={{ p: 4 }}>
-                    <Typography variant="h4" align="center" gutterBottom>
-                        Profile Settings
-                    </Typography>
-                    
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 3 }}>
-                        <Box sx={{ mb: 4, textAlign: 'center', width: '100%' }}>
-                            <Typography variant="h6" gutterBottom>
-                                Avatar Background Color
-                            </Typography>
-                            <Avatar
-                                sx={{ 
-                                    width: 100, 
-                                    height: 100, 
-                                    mb: 2,
-                                    bgcolor: backgroundColor,
-                                    margin: '0 auto' 
-                                }}
-                            />
-                            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-                                <Wheel
-                                    color={backgroundColor}
-                                    onChange={(color) => handleColorChange({ hex: color.hex })}
-                                    style={{ width: '200px' }}
-                                />
-                            </Box>
-                        </Box>
-
-                        <Divider sx={{ width: '100%', my: 4 }} />
-
-                        <Box sx={{ textAlign: 'center', width: '100%' }}>
-                            <Typography variant="h6" gutterBottom>
-                                Custom Avatar Image
-                            </Typography>
-                            <Avatar
-                                src={previewUrl}
-                                sx={{ 
-                                    width: 100, 
-                                    height: 100, 
-                                    mb: 2,
-                                    bgcolor: backgroundColor,
-                                    margin: '0 auto'
-                                }}
-                            />
-                            <input
-                                accept="image/*"
-                                style={{ display: 'none' }}
-                                id="avatar-upload"
-                                type="file"
-                                onChange={handleFileSelect}
-                            />
-                            <label htmlFor="avatar-upload">
-                                <Button
-                                    variant="contained"
-                                    component="span"
-                                    startIcon={<CloudUploadIcon />}
-                                    sx={{ 
-                                        backgroundColor: '#4a4a4a',
-                                        '&:hover': {
-                                            backgroundColor: '#2a2a2a'
-                                        }
-                                    }}
+                {howls.map(howl => (
+                    <Paper 
+                        key={howl._id} 
+                        elevation={2} 
+                        sx={{ 
+                            p: 2, 
+                            mb: 2,
+                            backgroundColor: '#f5f5f5'
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Avatar 
+                                    sx={{ bgcolor: howl.author?.avatarColor || '#4a4a4a', mr: 2 }} 
+                                    src={howl.author?.avatar}
                                 >
-                                    Choose Avatar
-                                </Button>
-                            </label>
-                            {avatar && (
-                                <Button
-                                    onClick={handleUpload}
+                                    {howl.author?.username ? howl.author.username[0].toUpperCase() : '?'}
+                                </Avatar>
+                                <Typography variant="h6">
+                                    {howl.author.username}
+                                </Typography>
+                            </Box>
+                            {currentUser && currentUser._id === howl.author._id && (
+                                <IconButton 
+                                    onClick={() => handleDeleteHowl(howl._id)}
+                                    sx={{ color: '#4a4a4a' }}
+                                >
+                                    <DeleteIcon />
+                                </IconButton>
+                            )}
+                        </Box>
+                        <Typography variant="body1" sx={{ mt: 1 }}>
+                            {howl.content}
+                        </Typography>
+                        <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+                            {new Date(howl.createdAt).toLocaleString()}
+                        </Typography>
+    
+                        {howl.replies && howl.replies.map(reply => (
+                            <Box sx={{ ml: 6, mt: 1 }} key={reply._id}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                        <Avatar 
+                                            sx={{ 
+                                                bgcolor: reply.author?.avatarColor || '#4a4a4a', 
+                                                mr: 1, 
+                                                width: 24, 
+                                                height: 24, 
+                                                fontSize: '0.875rem' 
+                                            }}
+                                            src={reply.author?.avatar}
+                                        >
+                                            {reply.author?.username ? reply.author.username[0].toUpperCase() : '?'}
+                                        </Avatar>
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                                            {reply.author.username}
+                                        </Typography>
+                                    </Box>
+                                    {currentUser && currentUser._id === reply.author._id && (
+                                        <IconButton 
+                                            size="small"
+                                            onClick={() => handleDeleteReply(howl._id, reply._id)}
+                                            sx={{ color: '#4a4a4a' }}
+                                        >
+                                            <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                    )}
+                                </Box>
+                                <Typography variant="body2" sx={{ ml: 4 }}>
+                                    {reply.content}
+                                </Typography>
+                                <Typography variant="caption" sx={{ ml: 4 }}>
+                                    {new Date(reply.createdAt).toLocaleString()}
+                                </Typography>
+                            </Box>
+                        ))}
+    
+                        <Box sx={{ mt: 2 }}>
+                            <Button 
+                                size="small"
+                                onClick={() => setReplyingTo(replyingTo === howl._id ? null : howl._id)}
+                                sx={{ 
+                                    color: '#4a4a4a',
+                                    '&:hover': {
+                                        backgroundColor: 'rgba(74, 74, 74, 0.04)'
+                                    }
+                                }}
+                            >
+                                {replyingTo === howl._id ? 'Cancel' : 'Reply'}
+                            </Button>
+                        </Box>
+    
+                        {replyingTo === howl._id && (
+                            <Box sx={{ ml: 6, mt: 1 }}>
+                                <TextField
+                                    fullWidth
+                                    size="small"
+                                    value={replyContent}
+                                    onChange={(e) => setReplyContent(e.target.value)}
+                                    placeholder="Write a reply..."
+                                    sx={{ backgroundColor: 'white' }}
+                                />
+                                <Button 
+                                    onClick={() => handleReply(howl._id)}
                                     sx={{ 
-                                        mt: 2,
-                                        ml: 2,
+                                        mt: 1,
                                         backgroundColor: '#4a4a4a',
                                         color: 'white',
                                         '&:hover': {
@@ -148,12 +182,12 @@ const Settings = () => {
                                         }
                                     }}
                                 >
-                                    Upload Avatar
+                                    Send Reply
                                 </Button>
-                            )}
-                        </Box>
-                    </Box>
-                </Paper>
+                            </Box>
+                        )}
+                    </Paper>
+                ))}
             </Box>
         </Container>
     );
