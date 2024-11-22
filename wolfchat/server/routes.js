@@ -94,6 +94,17 @@ router.get('/api/user', (req, res) => {
         res.status(401).json({ error: 'Not logged in' });
     }
 });
+router.post('/api/settings/avatar-color', async (req, res) => {
+    try {
+        const user = await User.findById(req.session.user._id);
+        user.avatarColor = req.body.color;
+        await user.save();
+        req.session.user.avatarColor = user.avatarColor;
+        res.json({ message: 'Avatar color updated successfully' });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to update avatar color' });
+    }
+});
 //Deletes
 router.delete('/api/howls/:howlId/replies/:replyId', async (req, res) => {
     try {
