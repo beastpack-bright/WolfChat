@@ -15,7 +15,11 @@ const app = express();
 const redisClient = createClient({
     url: process.env.REDIS_URL
 });
+const stream = require('stream');
+const { Readable } = stream;
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 redisClient.connect().catch(console.error);
 app.use(express.static('public'));
 app.use(session({
@@ -35,7 +39,7 @@ const hbs = create({
     defaultLayout: 'main',
 });
 
-mongoose.connect('mongodb://localhost/wolfchat')
+mongoose.connect('mongodb+srv://eas2062:wolves963@eas2062.n6uks.mongodb.net/WolfChat?retryWrites=true&w=majority')
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.error('Could not connect to MongoDB:', err));
 
@@ -46,7 +50,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
     key: 'sessionId',
-    secret: 'Wolf Pack Secret',
+    secret: 'SECRETCHEESE',
     resave: true,
     saveUninitialized: true,
     cookie: {

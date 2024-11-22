@@ -44,8 +44,8 @@ router.get('/settings', requireAuth, (req, res) => {
 router.get('/api/howls', async (req, res) => {
     try {
         const howls = await Howl.find()
-            .populate('author', 'username avatar')
-            .populate('replies.author', 'username avatar')
+            .populate('author', 'username avatarColor avatar')
+            .populate('replies.author', 'username avatarColor avatar')
             .sort({ createdAt: -1 });
         res.json(howls);
     } catch (err) {
@@ -99,10 +99,29 @@ router.post('/api/settings/avatar-color', async (req, res) => {
         const user = await User.findById(req.session.user._id);
         user.avatarColor = req.body.color;
         await user.save();
+        
+        // Update session
         req.session.user.avatarColor = user.avatarColor;
-        res.json({ message: 'Avatar color updated successfully' });
+        
+        res.json({ message: 'Color updated successfully' });
     } catch (err) {
-        res.status(500).json({ error: 'Failed to update avatar color' });
+        res.status(500).json({ error: 'Failed to update color' });
+    }
+});
+//Reset
+router.post('/api/settings/reset-avatar', async (req, res) => {
+    try {
+        const user = await User.findById(req.session.user._id);
+        user.avatar = undefined;
+        user.avatarColor = '#4a4a4a';
+        await user.save();
+        
+        req.session.user.avatar = undefined;
+        req.session.user.avatarColor = '#4a4a4a';
+        
+        res.json({ message: 'Avatar reset successfully' });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to reset avatar' });
     }
 });
 //Deletes

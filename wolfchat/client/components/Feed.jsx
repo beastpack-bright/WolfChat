@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Container, 
-    Paper, 
-    Typography, 
-    Box, 
+import {
+    Container,
+    Paper,
+    Typography,
+    Box,
     Button,
     TextField,
     Avatar,
@@ -56,7 +56,7 @@ const Feed = () => {
         const response = await fetch(`/api/howls/${howlId}`, {
             method: 'DELETE'
         });
-    
+
         if (response.ok) {
             fetchHowls();
         }
@@ -76,29 +76,33 @@ const Feed = () => {
         <Container maxWidth="sm">
             <Box sx={{ mt: 4 }}>
                 {howls.map(howl => (
-                    <Paper 
-                        key={howl._id} 
-                        elevation={2} 
-                        sx={{ 
-                            p: 2, 
+                    <Paper
+                        key={howl._id}
+                        elevation={2}
+                        sx={{
+                            p: 2,
                             mb: 2,
                             backgroundColor: '#f5f5f5'
                         }}
                     >
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                 <Avatar 
-    sx={{ bgcolor: '#4a4a4a', mr: 2 }} 
-    src={howl.author?.avatar}
->
-    {howl.author?.username ? howl.author.username[0].toUpperCase() : '?'}
-</Avatar>
+                                <Avatar
+                                    sx={{
+                                        bgcolor: howl.author?.avatarColor || '#4a4a4a',
+                                        mr: 2
+                                    }}
+                                    src={howl.author?.avatar}
+                                >
+                                    {howl.author?.username ? howl.author.username[0].toUpperCase() : '?'}
+                                </Avatar>
+
                                 <Typography variant="h6">
                                     {howl.author.username}
                                 </Typography>
                             </Box>
                             {currentUser && currentUser._id === howl.author._id && (
-                                <IconButton 
+                                <IconButton
                                     onClick={() => handleDeleteHowl(howl._id)}
                                     sx={{ color: '#4a4a4a' }}
                                 >
@@ -117,21 +121,24 @@ const Feed = () => {
                             <Box sx={{ ml: 6, mt: 1 }} key={reply._id}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <Avatar 
-    sx={{ 
-        bgcolor: howl.author?.avatarColor || '#4a4a4a', 
-        mr: 2 
-    }} 
-    src={howl.author?.avatar}
->
-    {howl.author?.username ? howl.author.username[0].toUpperCase() : '?'}
-</Avatar>
+                                        <Avatar
+                                            sx={{
+                                                bgcolor: reply.author?.avatarColor || '#4a4a4a',
+                                                mr: 1,
+                                                width: 24,
+                                                height: 24,
+                                                fontSize: '0.875rem'
+                                            }}
+                                            src={reply.author?.avatar}
+                                        >
+                                            {reply.author?.username ? reply.author.username[0].toUpperCase() : '?'}
+                                        </Avatar>
                                         <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
                                             {reply.author.username}
                                         </Typography>
                                     </Box>
                                     {currentUser && currentUser._id === reply.author._id && (
-                                        <IconButton 
+                                        <IconButton
                                             size="small"
                                             onClick={() => handleDeleteReply(howl._id, reply._id)}
                                             sx={{ color: '#4a4a4a' }}
@@ -150,10 +157,10 @@ const Feed = () => {
                         ))}
 
                         <Box sx={{ mt: 2 }}>
-                            <Button 
+                            <Button
                                 size="small"
                                 onClick={() => setReplyingTo(replyingTo === howl._id ? null : howl._id)}
-                                sx={{ 
+                                sx={{
                                     color: '#4a4a4a',
                                     '&:hover': {
                                         backgroundColor: 'rgba(74, 74, 74, 0.04)'
@@ -174,9 +181,9 @@ const Feed = () => {
                                     placeholder="Write a reply..."
                                     sx={{ backgroundColor: 'white' }}
                                 />
-                                <Button 
+                                <Button
                                     onClick={() => handleReply(howl._id)}
-                                    sx={{ 
+                                    sx={{
                                         mt: 1,
                                         backgroundColor: '#4a4a4a',
                                         color: 'white',

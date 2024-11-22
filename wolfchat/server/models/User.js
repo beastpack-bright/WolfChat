@@ -16,13 +16,14 @@ const UserSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
-    avatar: {
+    avatar: String,
+    avatarColor: {
         type: String,
-        default: null
+        default: '#4a4a4a'
     }
 });
 
-UserSchema.pre('save', async function(next) {
+UserSchema.pre('save', async function (next) {
     if (!this.isModified('password')) return next();
     this.password = await bcrypt.hash(this.password, 10);
     next();
