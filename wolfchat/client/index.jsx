@@ -22,7 +22,7 @@ const App = () => {
             case '/feed':
                 return <Feed />;
             case '/settings':
-                return <div>Settings Page Coming Soon</div>;
+                return <Settings />;
             case '/404':
                 return <NotFound />;
             default:

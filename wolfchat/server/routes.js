@@ -127,6 +127,30 @@ router.delete('/api/howls/:howlId/replies/:replyId', async (req, res) => {
         res.status(500).json({ error: 'Failed to delete reply' });
     }
 });
+//Settings stuff
+const multer = require('multer');
+const storage = multer.diskStorage({
+    destination: 'public/uploads/',
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '-' + file.originalname);
+    }
+});
+const upload = multer({ storage: storage });
+
+router.post('/api/settings/avatar', upload.single('avatar'), async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ error: 'Must be logged in to update avatar' });
+    }
+
+    try {
+        const user = await User.findById(req.session.user._id);
+        user.avatar = `/uploads/${req.file.filename}`;
+        await user.save();
+        res.json({ message: 'Avatar updated successfully' });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to update avatar' });
+    }
+});
 // auth auth auth aith auth
 router.post('/login', auth.login);
 router.post('/signup', auth.signup);
