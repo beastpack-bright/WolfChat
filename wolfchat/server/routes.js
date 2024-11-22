@@ -203,16 +203,12 @@ router.post('/signup', async (req, res) => {
     await user.save();
     
     req.session.user = user;
-    
-    // Clear and direct response
     res.status(200).json({ redirect: '/feed' });
 });
 
 router.post('/login', async (req, res) => {
-    // After successful authentication
     req.session.user = user;
     
-    // Clear and direct response
     res.status(200).json({ redirect: '/feed' });
 });
 router.post('/logout', (req, res) => {
