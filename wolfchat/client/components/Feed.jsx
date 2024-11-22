@@ -56,7 +56,7 @@ const Feed = () => {
         const response = await fetch(`/api/howls/${howlId}`, {
             method: 'DELETE'
         });
-
+    
         if (response.ok) {
             fetchHowls();
         }
@@ -87,7 +87,10 @@ const Feed = () => {
                     >
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Avatar sx={{ bgcolor: '#4a4a4a', mr: 2 }}>
+                 <Avatar 
+    sx={{ bgcolor: '#4a4a4a', mr: 2 }} 
+    src={howl.author?.avatar}
+>
     {howl.author?.username ? howl.author.username[0].toUpperCase() : '?'}
 </Avatar>
                                 <Typography variant="h6">

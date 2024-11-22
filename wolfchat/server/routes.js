@@ -44,8 +44,8 @@ router.get('/settings', requireAuth, (req, res) => {
 router.get('/api/howls', async (req, res) => {
     try {
         const howls = await Howl.find()
-            .populate('author', 'username')
-            .populate('replies.author', 'username')
+            .populate('author', 'username avatar')
+            .populate('replies.author', 'username avatar')
             .sort({ createdAt: -1 });
         res.json(howls);
     } catch (err) {
@@ -87,22 +87,6 @@ router.post('/api/howls/:howlId/replies', async (req, res) => {
         res.status(500).json({ error: 'Failed to post reply' });
     }
 });
-router.delete('/api/howls/:howlId', async (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).json({ error: 'Must be logged in to delete howls' });
-    }
-
-    try {
-        const howl = await Howl.findById(req.params.howlId);
-        if (howl.author.toString() !== req.session.user._id) {
-            return res.status(403).json({ error: 'Not authorized to delete this howl' });
-        }
-        await howl.delete();
-        res.json({ message: 'Howl deleted successfully' });
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to delete howl' });
-    }
-});
 router.get('/api/user', (req, res) => {
     if (req.session.user) {
         res.json(req.session.user);
@@ -110,6 +94,7 @@ router.get('/api/user', (req, res) => {
         res.status(401).json({ error: 'Not logged in' });
     }
 });
+//Deletes
 router.delete('/api/howls/:howlId/replies/:replyId', async (req, res) => {
     try {
         const howl = await Howl.findById(req.params.howlId);
@@ -127,27 +112,56 @@ router.delete('/api/howls/:howlId/replies/:replyId', async (req, res) => {
         res.status(500).json({ error: 'Failed to delete reply' });
     }
 });
+router.delete('/api/howls/:howlId', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ error: 'Must be logged in to delete howls' });
+    }
+
+    try {
+        const result = await Howl.findOneAndDelete({
+            _id: req.params.howlId,
+            author: req.session.user._id
+        });
+
+        if (result) {
+            res.json({ message: 'Howl deleted successfully' });
+        } else {
+            res.status(403).json({ error: 'Not authorized to delete this howl' });
+        }
+    } catch (err) {
+        console.log('Error deleting howl:', err);
+        res.status(500).json({ error: 'Failed to delete howl' });
+    }
+});
 //Settings stuff
 const multer = require('multer');
 const storage = multer.diskStorage({
-    destination: 'public/uploads/',
+    destination: (req, file, cb) => {
+        cb(null, 'public/uploads/');
+    },
     filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + '-' + file.originalname);
     }
 });
+
 const upload = multer({ storage: storage });
 
 router.post('/api/settings/avatar', upload.single('avatar'), async (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).json({ error: 'Must be logged in to update avatar' });
-    }
-
     try {
         const user = await User.findById(req.session.user._id);
         user.avatar = `/uploads/${req.file.filename}`;
         await user.save();
-        res.json({ message: 'Avatar updated successfully' });
+        
+        // Update session with new avatar
+        req.session.user.avatar = user.avatar;
+        
+        res.json({ 
+            message: 'Avatar updated successfully',
+            avatar: user.avatar 
+        });
     } catch (err) {
+        console.log('Error updating avatar:', err);
         res.status(500).json({ error: 'Failed to update avatar' });
     }
 });
@@ -160,8 +174,7 @@ router.post('/logout', (req, res) => {
 });
 
 // attempt at catch-all
-router.get('', (req, res) => {
+router.get('*', (req, res) => {
     res.status(404).render('404');
 });
-
 module.exports = router;

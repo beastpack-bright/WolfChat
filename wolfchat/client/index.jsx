@@ -6,11 +6,12 @@ import HowlForm from './components/HowlForm';
 import Feed from './components/Feed';
 import Layout from './components/Layout';
 import NotFound from './components/NotFound'
+import Settings from './components/Settings';
 
 const App = () => {
     const path = window.location.pathname;
 
-    // Only show NavBar if user is logged in (not on login or signup pages)
+    // Only show NavBar if user is logged in (not on login, 404 or signup pages)
     const isAuthPage = path === '/' || path === '/signup' || path === "/404";
 
     const getComponent = () => {
