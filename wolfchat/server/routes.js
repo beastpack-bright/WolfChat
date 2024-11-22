@@ -196,18 +196,24 @@ router.post('/api/settings/avatar', upload.single('avatar'), async (req, res) =>
     }
 });
 // auth auth auth aith auth
-router.post('/login', auth.login);
 router.post('/signup', async (req, res) => {
     const { username, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ username, password: hashedPassword });
     await user.save();
     
-    // Set up the session for our new wolf
     req.session.user = user;
-    req.session.save(() => {
-        res.json({ redirect: '/feed' });
-    });
+    
+    // Clear and direct response
+    res.status(200).json({ redirect: '/feed' });
+});
+
+router.post('/login', async (req, res) => {
+    // After successful authentication
+    req.session.user = user;
+    
+    // Clear and direct response
+    res.status(200).json({ redirect: '/feed' });
 });
 router.post('/logout', (req, res) => {
     req.session.destroy();
