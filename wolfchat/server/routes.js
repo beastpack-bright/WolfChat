@@ -84,7 +84,6 @@ router.get('/api/debug/howl/:howlId', async (req, res) => {
             .populate('author')
             .populate('replies.author');
             
-        // Log the raw reply author IDs
         console.log('Reply author IDs:', howl.replies.map(r => r.author));
         
         res.json(howl);
