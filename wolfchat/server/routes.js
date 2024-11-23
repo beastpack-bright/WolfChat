@@ -54,7 +54,6 @@ router.get('/api/howls', async (req, res) => {
             })
             .sort({ createdAt: -1 });
             
-        console.log('Populated howls:', JSON.stringify(howls, null, 2)); // Add this for verification
         res.json(howls);
     } catch (err) {
         console.log('Population error:', err);
@@ -252,6 +251,39 @@ router.post('/api/settings/change-password', async (req, res) => {
         res.json({ message: 'Password changed successfully' });
     } catch (err) {
         res.status(500).json({ message: 'Failed to change password' });
+    }
+});
+
+//profiles
+router.get('/api/profile/:username?', async (req, res) => {
+    try {
+        const username = req.params.username || req.session.user.username;
+        const user = await User.findOne({ username });
+        const howlCount = await Howl.countDocuments({ author: user._id });
+        
+        res.json({
+            username: user.username,
+            avatar: user.avatar,
+            avatarColor: user.avatarColor,
+            blurb: user.blurb,
+            howlCount
+        });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch profile' });
+    }
+});
+router.get('/profile/:username', requireAuth, (req, res) => {
+    res.render('profile');
+});
+//blurb update
+router.post('/api/profile/blurb', async (req, res) => {
+    try {
+        const user = await User.findById(req.session.user._id);
+        user.blurb = req.body.blurb;
+        await user.save();
+        res.json({ message: 'Blurb updated successfully' });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to update blurb' });
     }
 });
 // auth auth auth aith auth

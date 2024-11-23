@@ -7,6 +7,7 @@ import Feed from './components/Feed';
 import Layout from './components/Layout';
 import NotFound from './components/NotFound'
 import Settings from './components/Settings';
+import Profile from './components/Profile';
 
 const App = () => {
     const path = window.location.pathname;
@@ -27,6 +28,10 @@ const App = () => {
             case '/404':
                 return <NotFound />;
             default:
+                // Add this section to handle profile routes
+                if (path.startsWith('/profile/')) {
+                    return <Profile />;
+                }
                 return <LoginForm />;
         }
     };

@@ -20,6 +20,11 @@ const UserSchema = new mongoose.Schema({
     avatarColor: {
         type: String,
         default: '#4a4a4a'
+    },
+    blurb: {
+        type: String,
+        default: '',
+        maxLength: 500
     }
 });
 

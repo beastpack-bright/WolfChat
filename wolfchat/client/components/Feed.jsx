@@ -10,12 +10,16 @@ import {
     IconButton
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import PersonIcon from '@mui/icons-material/Person';
+import { useNavigate } from 'react-router-dom';
+
 
 const Feed = () => {
     const [howls, setHowls] = useState([]);
     const [replyContent, setReplyContent] = useState('');
     const [replyingTo, setReplyingTo] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
+    const navigate = useNavigate();
 
     const fetchHowls = async () => {
         const response = await fetch('/api/howls');
@@ -26,6 +30,7 @@ const Feed = () => {
     useEffect(() => {
         fetchHowls();
     }, []);
+
     useEffect(() => {
         const fetchUser = async () => {
             const response = await fetch('/api/user');
@@ -36,6 +41,7 @@ const Feed = () => {
         };
         fetchUser();
     }, []);
+
     const handleReply = async (howlId) => {
         const response = await fetch(`/api/howls/${howlId}/replies`, {
             method: 'POST',
@@ -96,20 +102,60 @@ const Feed = () => {
                                 >
                                     {howl.author?.username ? howl.author.username[0].toUpperCase() : '?'}
                                 </Avatar>
-
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mr: 2 }}>
+        <Avatar
+            sx={{
+                bgcolor: howl.author?.avatarColor || '#4a4a4a',
+                mb: 1
+            }}
+            src={howl.author?.avatar}
+        >
+            {howl.author?.username ? howl.author.username[0].toUpperCase() : '?'}
+        </Avatar>
+        <Button
+            variant="text"
+            size="small"
+            onClick={() => navigate(`/profile/${howl.author.username}`)}
+            sx={{
+                minWidth: 'unset',
+                fontSize: '0.75rem',
+                color: '#4a4a4a',
+                '&:hover': {
+                    backgroundColor: 'rgba(74, 74, 74, 0.04)'
+                }
+            }}
+        >
+            Profile
+        </Button>
+    </Box>
+    <Typography variant="h6">
+        {howl.author.username}
+    </Typography>
+</Box>
                                 <Typography variant="h6">
                                     {howl.author.username}
                                 </Typography>
                             </Box>
-                            {currentUser && currentUser._id === howl.author._id && (
+                            <Box>
                                 <IconButton
-                                    onClick={() => handleDeleteHowl(howl._id)}
-                                    sx={{ color: '#4a4a4a' }}
+                                    onClick={() => navigate(`/profile/${howl.author.username}`)}
+                                    sx={{ color: '#4a4a4a', mr: 1 }}
                                 >
-                                    <DeleteIcon />
+                                    <PersonIcon />
                                 </IconButton>
-                            )}
+                                {currentUser && currentUser._id === howl.author._id && (
+                                    <IconButton
+                                        onClick={() => handleDeleteHowl(howl._id)}
+                                        sx={{ color: '#4a4a4a' }}
+                                    >
+                                        <DeleteIcon />
+                                    </IconButton>
+                                )}
+                            </Box>
                         </Box>
+
                         <Typography variant="body1" sx={{ mt: 1 }}>
                             {howl.content}
                         </Typography>
@@ -121,21 +167,46 @@ const Feed = () => {
                             <Box sx={{ ml: 6, mt: 1 }} key={reply._id}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        <Avatar
-                                            sx={{
-                                                bgcolor: reply.author?.avatarColor || '#4a4a4a',
-                                                mr: 1,
-                                                width: 24,
-                                                height: 24,
-                                                fontSize: '0.875rem'
-                                            }}
-                                            src={reply.author?.avatar}
-                                        >
-                                            {reply.author?.username ? reply.author.username[0].toUpperCase() : '?'}
-                                        </Avatar>
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <Avatar
+        sx={{
+            bgcolor: reply.author?.avatarColor || '#4a4a4a',
+            mr: 1,
+            width: 24,
+            height: 24,
+            fontSize: '0.875rem'
+        }}
+        src={reply.author?.avatar}
+    >
+        {reply.author?.username ? reply.author.username[0].toUpperCase() : '?'}
+    </Avatar>
+    <Button
+        size="small"
+        onClick={() => navigate(`/profile/${reply.author.username}`)}
+        sx={{
+            mt: 0.5,
+            fontSize: '0.65rem',
+            color: '#4a4a4a',
+            minWidth: 'auto',
+            padding: '2px 8px',
+            '&:hover': {
+                backgroundColor: 'rgba(74, 74, 74, 0.04)'
+            }
+        }}
+    >
+        Profile
+    </Button>
+</Box>
                                         <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
                                             {reply.author.username}
                                         </Typography>
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => navigate(`/profile/${reply.author.username}`)}
+                                            sx={{ color: '#4a4a4a', ml: 1 }}
+                                        >
+                                            <PersonIcon fontSize="small" />
+                                        </IconButton>
                                     </Box>
                                     {currentUser && currentUser._id === reply.author._id && (
                                         <IconButton
