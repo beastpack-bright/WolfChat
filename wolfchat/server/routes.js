@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('./controllers/auth');
 const User = require('./models/User');
 const Howl = require('./models/Howl');
+const Notification = require('./models/Notification');
 const bcrypt = require('bcrypt');
 
 // Middlware Route
@@ -93,21 +94,21 @@ router.get('/api/debug/howl/:howlId', async (req, res) => {
 
 
 router.post('/api/howls/:howlId/replies', async (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).json({ error: 'Must be logged in to reply' });
-    }
-
     try {
         const howl = await Howl.findById(req.params.howlId);
-        
-   
-        console.log('Current user ID:', req.session.user._id);
         
         const newReply = {
             content: req.body.content,
             author: req.session.user._id,
             createdAt: new Date()
         };
+        
+        
+        const notification = new Notification({
+            userId: howl.author._id, 
+            message: `${req.session.user.username} replied to your howl: "${req.body.content.substring(0, 30)}..."`,
+        });
+        await notification.save();
         
         howl.replies.push(newReply);
         await howl.save();
@@ -135,7 +136,7 @@ router.post('/api/settings/avatar-color', async (req, res) => {
         user.avatarColor = req.body.color;
         await user.save();
         
-        // Update session
+       
         req.session.user.avatarColor = user.avatarColor;
         
         res.json({ message: 'Color updated successfully' });
@@ -329,6 +330,40 @@ router.post('/api/profile/blurb', async (req, res) => {
 router.post('/api/settings/theme', (req, res) => {
     req.session.user.theme = req.body.theme;
     res.json({ theme: req.body.theme });
+});
+//Notifications
+router.get('/api/notifications', requireAuth, async (req, res) => {
+    try {
+        const notifications = await Notification.find({ userId: req.session.user._id })
+            .sort({ createdAt: -1 })
+            .limit(10);
+        res.json(notifications);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch notifications' });
+    }
+});
+
+router.post('/api/notifications/read', requireAuth, async (req, res) => {
+    try {
+        await Notification.updateMany(
+            { userId: req.session.user._id },
+            { read: true }
+        );
+        res.json({ message: 'Notifications marked as read' });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to mark notifications as read' });
+    }
+});
+router.post('/api/notifications/read', requireAuth, async (req, res) => {
+    try {
+        await Notification.updateMany(
+            { userId: req.session.user._id },
+            { read: true }
+        );
+        res.json({ message: 'All notifications marked as read' });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to mark notifications as read' });
+    }
 });
 // auth auth auth aith auth
 router.post('/login', auth.login);

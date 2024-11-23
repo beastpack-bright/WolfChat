@@ -12,6 +12,7 @@ import {
     Settings as SettingsIcon,
     Logout as LogoutIcon
 } from '@mui/icons-material';
+import NotificationBell from './NotificationBell';
 
 const NavBar = () => {
     const handleLogout = async () => {
@@ -57,8 +58,10 @@ const NavBar = () => {
                 >
                     Logout
                 </Button>
+                <NotificationBell />
             </Toolbar>
         </AppBar>
+        
     );
 };
 

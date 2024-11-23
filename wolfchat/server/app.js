@@ -11,21 +11,22 @@ require('dotenv').config();
 const port = process.env.PORT || 3000;
 const app = express();
 
+// Redis client setup
 const redisClient = createClient({
-    url: process.env.REDIS_URL
+    url: process.env.REDIS_URL || 'redis://localhost:6379'
 });
 
-// Middleware setup - in correct order
+// Middleware setup
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use('/assets', express.static(path.resolve(`${__dirname}/../hosted/`)));
 
-// Redis setup
+// Redis connection and session setup
 redisClient.connect().catch(console.error);
 app.use(session({
     store: new RedisStore({ client: redisClient }),
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || 'default_secret',
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -45,8 +46,8 @@ app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, '../views'));
 
-// MongoDB connection
-mongoose.connect('mongodb+srv://eas2062:wolves963@eas2062.n6uks.mongodb.net/WolfChat?retryWrites=true&w=majority')
+
+mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.error('Could not connect to MongoDB:', err));
 
