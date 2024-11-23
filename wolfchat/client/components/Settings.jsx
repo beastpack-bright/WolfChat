@@ -10,13 +10,49 @@ import {
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { Wheel } from '@uiw/react-color';
+import { TextField } from '@mui/material';
 
 const Settings = () => {
     const [avatar, setAvatar] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [currentAvatar, setCurrentAvatar] = useState(null);
     const [backgroundColor, setBackgroundColor] = useState('#4a4a4a');
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordError, setPasswordError] = useState('');
+    const handleChangePassword = async () => {
+        if (newPassword !== confirmPassword) {
+            setPasswordError('New passwords do not match.');
+            return;
+        }
 
+        try {
+            const response = await fetch('/api/settings/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    currentPassword,
+                    newPassword,
+                }),
+            });
+
+            if (response.ok) {
+                alert('Password changed successfully.');
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+                setPasswordError('');
+            } else {
+                const error = await response.json();
+                setPasswordError(error.message || 'Failed to change password.');
+            }
+        } catch (err) {
+            setPasswordError('An error occurred. Please try again later.');
+        }
+    };
     useEffect(() => {
         const fetchUser = async () => {
             const response = await fetch('/api/user');
@@ -182,6 +218,56 @@ const Settings = () => {
                                 >
                                     Reset to Default
                                 </Button>
+                                <Divider sx={{ width: '100%', my: 4 }} />
+
+                                <Box sx={{ textAlign: 'center', width: '100%' }}>
+                                    <Typography variant="h6" gutterBottom>
+                                        Change Password
+                                    </Typography>
+
+                                    <TextField
+                                        type="password"
+                                        label="Current Password"
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                        fullWidth
+                                        margin="normal"
+                                    />
+
+                                    <TextField
+                                        type="password"
+                                        label="New Password"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        fullWidth
+                                        margin="normal"
+                                    />
+
+                                    <TextField
+                                        type="password"
+                                        label="Confirm New Password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        fullWidth
+                                        margin="normal"
+                                        error={!!passwordError}
+                                        helperText={passwordError}
+                                    />
+
+                                    <Button
+                                        onClick={handleChangePassword}
+                                        sx={{
+                                            mt: 3,
+                                            backgroundColor: '#4a4a4a',
+                                            color: 'white',
+                                            '&:hover': {
+                                                backgroundColor: '#2a2a2a'
+                                            }
+                                        }}
+                                    >
+                                        Change Password
+                                    </Button>
+                                </Box>
                             </Box>
                         </Box>
                     </Box>

@@ -4,13 +4,15 @@ const HowlSchema = new mongoose.Schema({
     content: String,
     author: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
+        required: true
     },
     replies: [{
         content: String,
         author: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
+            ref: 'User',
+            required: true
         },
         createdAt: {
             type: Date,

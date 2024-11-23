@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const { create } = require('express-handlebars');
 const session = require('express-session');
 const routes = require('./routes');
-
 const RedisStore = require('connect-redis').default;
 const { createClient } = require('redis');
 require('dotenv').config();
@@ -15,14 +14,15 @@ const app = express();
 const redisClient = createClient({
     url: process.env.REDIS_URL
 });
-const stream = require('stream');
-const { Readable } = stream;
 
+// Middleware setup - in correct order
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-redisClient.on('error', (err) => console.error('Redis Client Error', err));
-await redisClient.connect();
 app.use(express.static('public'));
+app.use('/assets', express.static(path.resolve(`${__dirname}/../hosted/`)));
+
+// Redis setup
+redisClient.connect().catch(console.error);
 app.use(session({
     store: new RedisStore({ client: redisClient }),
     secret: process.env.SESSION_SECRET,
@@ -35,29 +35,25 @@ app.use(session({
     }
 }));
 
+// Handlebars setup
 const hbs = create({
     extname: '.handlebars',
     defaultLayout: 'main',
 });
 
-mongoose.connect('mongodb+srv://eas2062:wolves963@eas2062.n6uks.mongodb.net/WolfChat?retryWrites=true&w=majority')
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('Could not connect to MongoDB:', err));
-
-app.use('/assets', express.static(path.resolve(`${__dirname}/../hosted/`)));
-app.use(express.static(path.resolve(`${__dirname}/../hosted`)));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
 app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, '../views'));
 
+// MongoDB connection
+mongoose.connect('mongodb+srv://eas2062:wolves963@eas2062.n6uks.mongodb.net/WolfChat?retryWrites=true&w=majority')
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.error('Could not connect to MongoDB:', err));
+
+// Routes
 app.use('/', routes);
 
 app.listen(port, (err) => {
-    if (err) {
-        throw err;
-    }
+    if (err) throw err;
     console.log(`WolfChat is running on port ${port}`);
 });

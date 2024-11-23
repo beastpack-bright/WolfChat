@@ -3,7 +3,7 @@ const router = express.Router();
 const auth = require('./controllers/auth');
 const User = require('./models/User');
 const Howl = require('./models/Howl');
-
+const bcrypt = require('bcrypt');
 
 // Middlware Route
 const requireAuth = (req, res, next) => {
@@ -44,15 +44,23 @@ router.get('/settings', requireAuth, (req, res) => {
 router.get('/api/howls', async (req, res) => {
     try {
         const howls = await Howl.find()
-            .populate('author', 'username avatarColor avatar')
-            .populate('replies.author', 'username avatarColor avatar')
+            .populate({
+                path: 'author',
+                select: 'username avatarColor avatar'
+            })
+            .populate({
+                path: 'replies.author',
+                select: 'username avatarColor avatar'
+            })
             .sort({ createdAt: -1 });
+            
+        console.log('Populated howls:', JSON.stringify(howls, null, 2)); // Add this for verification
         res.json(howls);
     } catch (err) {
+        console.log('Population error:', err);
         res.status(500).json({ error: 'Failed to fetch howls' });
     }
 });
-
 router.post('/api/howls', async (req, res) => {
     if (!req.session.user) {
         return res.status(401).json({ error: 'Must be logged in to howl' });
@@ -70,6 +78,22 @@ router.post('/api/howls', async (req, res) => {
         res.status(500).json({ error: 'Failed to post howl' });
     }
 });
+router.get('/api/debug/howl/:howlId', async (req, res) => {
+    try {
+        const howl = await Howl.findById(req.params.howlId)
+            .populate('author')
+            .populate('replies.author');
+            
+        // Log the raw reply author IDs
+        console.log('Reply author IDs:', howl.replies.map(r => r.author));
+        
+        res.json(howl);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Then modify your reply posting endpoint to ensure the author is properly set
 router.post('/api/howls/:howlId/replies', async (req, res) => {
     if (!req.session.user) {
         return res.status(401).json({ error: 'Must be logged in to reply' });
@@ -77,13 +101,26 @@ router.post('/api/howls/:howlId/replies', async (req, res) => {
 
     try {
         const howl = await Howl.findById(req.params.howlId);
-        howl.replies.push({
+        
+        // Log the user ID being used
+        console.log('Current user ID:', req.session.user._id);
+        
+        const newReply = {
             content: req.body.content,
-            author: req.session.user._id
-        });
+            author: req.session.user._id,
+            createdAt: new Date()
+        };
+        
+        howl.replies.push(newReply);
         await howl.save();
-        res.json({ message: 'Reply posted successfully' });
+        
+        const updatedHowl = await Howl.findById(howl._id)
+            .populate('author')
+            .populate('replies.author');
+            
+        res.json(updatedHowl);
     } catch (err) {
+        console.log('Error details:', err);
         res.status(500).json({ error: 'Failed to post reply' });
     }
 });
@@ -193,6 +230,37 @@ router.post('/api/settings/avatar', upload.single('avatar'), async (req, res) =>
     } catch (err) {
         console.log('Error updating avatar:', err);
         res.status(500).json({ error: 'Failed to update avatar' });
+    }
+});
+//Password change 
+router.post('/api/settings/change-password', async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: 'Current and new password are required.' });
+    }
+
+    try {
+        const user = await User.findById(req.session.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        // Verify current password
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Current password is incorrect.' });
+        }
+
+        // Update password
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        await user.save();
+
+        res.json({ message: 'Password changed successfully.' });
+    } catch (err) {
+        console.error('Error updating password:', err);
+        res.status(500).json({ message: 'Failed to update password.' });
     }
 });
 // auth auth auth aith auth
