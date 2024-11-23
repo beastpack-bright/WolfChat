@@ -25,6 +25,14 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: '',
         maxLength: 500
+    },
+    featuredHowl: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Howl'
+    },
+    theme: {
+        type: String,
+        default: 'light'
     }
 });
 

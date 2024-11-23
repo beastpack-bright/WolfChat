@@ -22,7 +22,7 @@ const NavBar = () => {
     };
 
     return (
-        <AppBar position="fixed" sx={{ bgcolor: '#4a4a4a' }}>
+        <AppBar position="fixed" sx={{ bgcolor: 'primary.main' }}>
             <Toolbar>
                 <Typography variant="h6" component="div" sx={{ flexGrow: 0, mr: 4 }}>
                     🐺 WolfChat

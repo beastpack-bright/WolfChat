@@ -258,15 +258,39 @@ router.post('/api/settings/change-password', async (req, res) => {
 router.get('/api/profile/:username?', async (req, res) => {
     try {
         const username = req.params.username || req.session.user.username;
-        const user = await User.findOne({ username });
+        const user = await User.findOne({ username }).populate('featuredHowl');
         const howlCount = await Howl.countDocuments({ author: user._id });
+        const recentHowls = await Howl.find({ author: user._id })
         
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .populate('author', 'username avatar avatarColor');
+        // New stats calculations
+        const userHowls = await Howl.find({ author: user._id });
+        const repliesReceived = userHowls.reduce((total, howl) => total + howl.replies.length, 0);
+        
+        // Get total replies made by user
+        const allHowls = await Howl.find({});
+        const repliesMade = allHowls.reduce((total, howl) => {
+            return total + howl.replies.filter(reply => 
+                reply.author.toString() === user._id.toString()
+            ).length;
+        }, 0);
+
         res.json({
             username: user.username,
             avatar: user.avatar,
             avatarColor: user.avatarColor,
             blurb: user.blurb,
-            howlCount
+            howlCount,
+            packStats: {
+                repliesReceived,
+                repliesMade,
+                totalInteractions: repliesReceived + repliesMade + howlCount
+            },
+            joinDate: user.createdAt,
+            recentHowls,
+            featuredHowl: user.featuredHowl
         });
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch profile' });
@@ -274,6 +298,21 @@ router.get('/api/profile/:username?', async (req, res) => {
 });
 router.get('/profile/:username', requireAuth, (req, res) => {
     res.render('profile');
+});
+//more howls stuff
+router.post('/api/howls/:id/pin', async (req, res) => {
+    try {
+        const user = await User.findById(req.session.user._id);
+        const newFeaturedHowl = user.featuredHowl?.toString() === req.params.id ? null : req.params.id;
+        
+        await User.findByIdAndUpdate(req.session.user._id, {
+            featuredHowl: newFeaturedHowl
+        });
+        
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to update pin' });
+    }
 });
 //blurb update
 router.post('/api/profile/blurb', async (req, res) => {
@@ -286,6 +325,11 @@ router.post('/api/profile/blurb', async (req, res) => {
         res.status(500).json({ error: 'Failed to update blurb' });
     }
 });
+//Theme setting 
+router.post('/api/settings/theme', (req, res) => {
+    req.session.user.theme = req.body.theme;
+    res.json({ theme: req.body.theme });
+});
 // auth auth auth aith auth
 router.post('/login', auth.login);
 router.post('/signup', auth.signup);
@@ -296,6 +340,6 @@ router.post('/logout', (req, res) => {
 
 // attempt at catch-all
 router.get('*', (req, res) => {
-    res.status(404).render('404');
+    res.redirect('/404');
 });
 module.exports = router;

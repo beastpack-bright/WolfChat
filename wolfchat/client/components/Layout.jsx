@@ -6,7 +6,10 @@ const Layout = ({ children }) => {
     return (
         <>
             <NavBar />
-            <Box sx={{ paddingTop: '64px' }}>
+            <Box sx={{ 
+                paddingTop: '64px',
+                bgcolor: 'background.default'
+            }}>
                 {children}
             </Box>
         </>

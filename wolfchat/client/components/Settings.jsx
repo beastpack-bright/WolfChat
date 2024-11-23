@@ -11,8 +11,10 @@ import {
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { Wheel } from '@uiw/react-color';
 import { TextField } from '@mui/material';
+import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 
-const Settings = () => {
+const Settings = ({ currentTheme, onThemeChange  }) => {
+    const [theme, setTheme] = useState(currentTheme);
     const [avatar, setAvatar] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [currentAvatar, setCurrentAvatar] = useState(null);
@@ -21,6 +23,15 @@ const Settings = () => {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
+    
+    const themes = [
+        { value: 'light', label: 'Light Theme' },
+        { value: 'dark', label: 'Dark Theme' },
+        { value: 'blue', label: 'Blue Theme' },
+        { value: 'highContrast', label: 'High Contrast' },
+        { value: 'bee', label: 'Bee Theme' },
+        { value: 'pink', label: 'Pink Theme' }
+    ];
     const handleChangePassword = async () => {
         if (newPassword !== confirmPassword) {
             setPasswordError('New passwords do not match.');
@@ -65,6 +76,18 @@ const Settings = () => {
         };
         fetchUser();
     }, []);
+
+    const handleThemeChange = (event) => {
+        const newTheme = event.target.value;
+        setTheme(newTheme);
+        onThemeChange(newTheme);
+        
+        fetch('/api/settings/theme', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ theme: newTheme })
+        });
+    };
 
     const handleColorChange = async (color) => {
         const newColor = color.hex;
@@ -219,7 +242,27 @@ const Settings = () => {
                                     Reset to Default
                                 </Button>
                                 <Divider sx={{ width: '100%', my: 4 }} />
+                                <Box sx={{ textAlign: 'center', width: '100%' }}>
+    <Typography variant="h6" gutterBottom>
+        Theme
+    </Typography>
+    <FormControl fullWidth sx={{ mt: 2 }}>
+        <InputLabel>Theme</InputLabel>
+        <Select
+            value={theme}
+            onChange={handleThemeChange}
+            label="Theme"
+        >
+            {themes.map((theme) => (
+                <MenuItem key={theme.value} value={theme.value}>
+                    {theme.label}
+                </MenuItem>
+            ))}
+        </Select>
+    </FormControl>
+</Box>
 
+<Divider sx={{ width: '100%', my: 4 }} />
                                 <Box sx={{ textAlign: 'center', width: '100%' }}>
                                     <Typography variant="h6" gutterBottom>
                                         Change Password
@@ -267,6 +310,7 @@ const Settings = () => {
                                     >
                                         Change Password
                                     </Button>
+                                   
                                 </Box>
                             </Box>
                         </Box>

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
+import { ThemeProvider, CssBaseline } from '@mui/material';
 import LoginForm from './components/LoginForm';
 import SignupForm from './components/SignupForm';
 import HowlForm from './components/HowlForm';
@@ -8,12 +9,29 @@ import Layout from './components/Layout';
 import NotFound from './components/NotFound'
 import Settings from './components/Settings';
 import Profile from './components/Profile';
+import { lightTheme, darkTheme, blueTheme, highContrastTheme, beeTheme, pinkTheme } from '../views/layouts/index';
+
+const themes = {
+    light: lightTheme,
+    dark: darkTheme,
+    blue: blueTheme,
+    highContrast: highContrastTheme,
+    bee: beeTheme,
+    pink: pinkTheme
+};
 
 const App = () => {
+    const [currentTheme, setCurrentTheme] = useState('light');
     const path = window.location.pathname;
-
-    // Only show NavBar if user is logged in (not on login, 404 or signup pages)
     const isAuthPage = path === '/' || path === '/signup' || path === "/404";
+
+    useEffect(() => {
+        fetch('/api/user').then(res => res.json()).then(user => {
+            if (user.theme) {
+                setCurrentTheme(user.theme);
+            }
+        });
+    }, []);
 
     const getComponent = () => {
         switch (path) {
@@ -24,11 +42,11 @@ const App = () => {
             case '/feed':
                 return <Feed />;
             case '/settings':
-                return <Settings />;
+                case '/settings':
+                    return <Settings currentTheme={currentTheme} onThemeChange={setCurrentTheme} />;
             case '/404':
                 return <NotFound />;
             default:
-                // Add this section to handle profile routes
                 if (path.startsWith('/profile/')) {
                     return <Profile />;
                 }
@@ -36,12 +54,20 @@ const App = () => {
         }
     };
 
-    return isAuthPage ? getComponent() : (
-        <Layout>
-            {getComponent()}
-        </Layout>
+    const componentToRender = getComponent();
+
+    return (
+        <ThemeProvider theme={themes[currentTheme]}>
+            <CssBaseline />
+            {isAuthPage ? componentToRender : (
+                <Layout>
+                    {componentToRender}
+                </Layout>
+            )}
+        </ThemeProvider>
     );
 };
+
 document.addEventListener('DOMContentLoaded', () => {
     const root = createRoot(document.getElementById('root'));
     root.render(<App />);
