@@ -1,0 +1,7 @@
+{
+    "name": "wolfchat-root",
+    "version": "1.0.0",
+    "scripts": {
+      "start": "cd wolfchat && npm install && npm start"
+    }
+  }
