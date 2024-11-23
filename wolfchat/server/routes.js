@@ -93,7 +93,7 @@ router.get('/api/debug/howl/:howlId', async (req, res) => {
     }
 });
 
-// Then modify your reply posting endpoint to ensure the author is properly set
+
 router.post('/api/howls/:howlId/replies', async (req, res) => {
     if (!req.session.user) {
         return res.status(401).json({ error: 'Must be logged in to reply' });
@@ -102,7 +102,7 @@ router.post('/api/howls/:howlId/replies', async (req, res) => {
     try {
         const howl = await Howl.findById(req.params.howlId);
         
-        // Log the user ID being used
+   
         console.log('Current user ID:', req.session.user._id);
         
         const newReply = {
@@ -220,7 +220,6 @@ router.post('/api/settings/avatar', upload.single('avatar'), async (req, res) =>
         user.avatar = `/uploads/${req.file.filename}`;
         await user.save();
         
-        // Update session with new avatar
         req.session.user.avatar = user.avatar;
         
         res.json({ 
