@@ -236,31 +236,24 @@ router.post('/api/settings/avatar', upload.single('avatar'), async (req, res) =>
 router.post('/api/settings/change-password', async (req, res) => {
     const { currentPassword, newPassword } = req.body;
 
-    if (!currentPassword || !newPassword) {
-        return res.status(400).json({ message: 'Current and new password are required.' });
-    }
-
     try {
         const user = await User.findById(req.session.user._id);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found.' });
-        }
-
-        // Verify current password
+        
         const isMatch = await bcrypt.compare(currentPassword, user.password);
         if (!isMatch) {
-            return res.status(401).json({ message: 'Current password is incorrect.' });
+            return res.status(401).json({ message: 'Current password is incorrect' });
         }
 
-        // Update password
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(newPassword, salt);
+       
+        const tempUser = new User({ password: newPassword });
+        user.password = tempUser.password;
         await user.save();
-
-        res.json({ message: 'Password changed successfully.' });
+        
+        console.log('Password updated successfully');
+        
+        res.json({ message: 'Password changed successfully' });
     } catch (err) {
-        console.error('Error updating password:', err);
-        res.status(500).json({ message: 'Failed to update password.' });
+        res.status(500).json({ message: 'Failed to change password' });
     }
 });
 // auth auth auth aith auth
