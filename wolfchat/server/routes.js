@@ -334,9 +334,12 @@ router.post('/api/settings/theme', (req, res) => {
 //Notifications
 router.get('/api/notifications', requireAuth, async (req, res) => {
     try {
-        const notifications = await Notification.find({ userId: req.session.user._id })
-            .sort({ createdAt: -1 })
-            .limit(10);
+        const notifications = await Notification.find({ 
+            userId: req.session.user._id,
+            read: false 
+        })
+        .sort({ createdAt: -1 })
+        .limit(10);
         res.json(notifications);
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch notifications' });
