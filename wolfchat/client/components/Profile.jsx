@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Paper, Typography, Box, Avatar, Grid, Card, CardContent, Tooltip } from '@mui/material';
+import { 
+    Container, Paper, Typography, Box, Avatar, Grid, Card, CardContent, Tooltip, Button, TextField 
+} from '@mui/material';
 import StarIcon from '@mui/icons-material/Star';
 import GroupIcon from '@mui/icons-material/Group';
 import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
@@ -10,19 +12,52 @@ import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
 
 const Profile = () => {
     const [profile, setProfile] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [blurb, setBlurb] = useState('');
+    const [isCurrentUserProfile, setIsCurrentUserProfile] = useState(false);
 
     useEffect(() => {
         const username = window.location.pathname.split('/profile/')[1];
         const fetchProfile = async () => {
-            const response = await fetch(`/api/profile/${username}`);
-            if (response.ok) {
-                const data = await response.json();
-                setProfile(data);
+            try {
+                // Fetch profile data
+                const profileResponse = await fetch(`/api/profile/${username}`);
+                if (profileResponse.ok) {
+                    const profileData = await profileResponse.json();
+                    setProfile(profileData);
+                    setBlurb(profileData.blurb || '');
+                }
+
+                // Check current user
+                const currentUserResponse = await fetch('/api/user');
+                if (currentUserResponse.ok) {
+                    const currentUser = await currentUserResponse.json();
+                    setIsCurrentUserProfile(currentUser.username === username);
+                }
+            } catch (error) {
+                console.error('Error fetching profile:', error);
             }
         };
         fetchProfile();
     }, []);
 
+    const handleSaveBlurb = async () => {
+        try {
+            const response = await fetch('/api/profile/blurb', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ blurb })
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                console.error('Failed to save blurb');
+            }
+        } catch (error) {
+            console.error('Error saving blurb:', error);
+        }
+    };
     if (!profile) return <div>Loading...</div>;
 
     return (
@@ -85,9 +120,37 @@ const Profile = () => {
                     </Box>
                 </Box>
 
-                <Typography variant="body1">
-                    {profile.blurb || "No bio yet"}
-                </Typography>
+                {isEditing ? (
+                    <Box sx={{ mt: 2, width: '100%' }}>
+                        <TextField
+                            fullWidth
+                            multiline
+                            rows={4}
+                            value={blurb}
+                            onChange={(e) => setBlurb(e.target.value)}
+                        />
+                        <Button 
+                            onClick={handleSaveBlurb}
+                            sx={{ mt: 2 }}
+                        >
+                            Save
+                        </Button>
+                    </Box>
+                ) : (
+                    <Box>
+                    <Typography variant="body1">
+                        {profile.blurb || "No bio yet"}
+                    </Typography>
+                    {isCurrentUserProfile && (
+                        <Button 
+                            onClick={() => setIsEditing(true)}
+                            sx={{ mt: 2 }}
+                        >
+                            Edit Blurb
+                        </Button>
+                    )}
+                </Box>
+                )}
 
                 <Grid container spacing={2} sx={{ mt: 3 }}>
                     <Grid item xs={12}>

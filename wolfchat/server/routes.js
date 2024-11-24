@@ -368,6 +368,7 @@ router.post('/api/notifications/read', requireAuth, async (req, res) => {
         res.status(500).json({ error: 'Failed to mark notifications as read' });
     }
 });
+
 // auth auth auth aith auth
 router.post('/login', auth.login);
 router.post('/signup', auth.signup);
